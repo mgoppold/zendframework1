@@ -58,6 +58,13 @@ class Zend_Mail_Protocol_Sieve
     protected $_implementation = '';
 
     /**
+     * sieve capabilities
+     * 
+     * @var string
+     */
+    protected $_capabilities = array();
+
+    /**
      * Public constructor
      *
      * @param  string      $host  hostname of IP address of Sieve server, if given connect() is called
@@ -143,6 +150,15 @@ class Zend_Mail_Protocol_Sieve
         foreach ($this->_welcome as $value) {
             if ($value[0] == 'IMPLEMENTATION') {
                 $this->_implementation = $value[1];
+            }
+            if ($this->_implementation == 'Dovecot Pigeonhole' && $value[0] == 'SIEVE') {
+                $this->_capabilities[$value[0]] = explode(' ', rtrim($value[1]));
+            }
+            if ($this->_implementation == 'Dovecot Pigeonhole' && $value[0] == 'SASL') {
+                $this->_capabilities[$value[0]] = explode(' ', rtrim($value[1]));
+            }
+            if ($this->_implementation == 'Dovecot Pigeonhole' && $value[0] == 'NOTIFY') {
+                $this->_capabilities[$value[0]] = explode(' ', rtrim($value[1]));
             }
         }
     }
@@ -425,7 +441,9 @@ class Zend_Mail_Protocol_Sieve
     {
         $lines = $this->requestAndResponse('CAPABILITY');
         
-        $capabilities = array();
+        //$capabilities = array();
+        // mit den Werten aus der Welcome - Meldung initialisieren
+        $capabilities = $this->_capabilities;
         
         foreach ($lines as $line) {
             if (count($line) === 1) {
